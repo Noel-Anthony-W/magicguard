@@ -1,0 +1,270 @@
+[build-system]
+# Defines the build backend that will be used to build the package
+# PEP 517 compliant - tells pip/build tools what's needed to build this package
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# Package name as it will appear on PyPI and when installed
+name = "magicguard"
+
+# Semantic versioning - will be bumped with each release
+version = "0.1.0"
+
+# One-line description for PyPI and package managers
+description = "File type validator using magic bytes to detect spoofing"
+
+# Path to the full README that will be shown on PyPI
+readme = "README.md"
+
+# Minimum Python version required (using 3.11+ for modern type hints)
+requires-python = ">=3.11"
+
+# SPDX license identifier - matches your LICENSE file
+license = {text = "GNU General Public License v3 (GPLv3)"}
+
+# Author information - replace with your details
+authors = [
+    {name = "Anthony Weiß", email = "weiss.anthonynoel@gmail.com"}
+]
+
+# Maintainer info (can be same as authors or different)
+maintainers = [
+    {name = "Anthony Weiß", email = "weiss.anthonynoel@gmail.com"}
+]
+
+# PyPI classifiers for discoverability and metadata
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+    "Typing :: Typed",
+]
+
+# Keywords for PyPI search
+keywords = [
+    "security",
+    "file-validation",
+    "magic-bytes",
+    "file-signature",
+    "spoofing-detection",
+    "forensics",
+]
+
+# Runtime dependencies - minimal for production use
+dependencies = [
+    "click>=8.1.0",      # CLI framework for building commands
+    "rich>=13.0.0",      # Terminal formatting and colors
+]
+
+# Optional dependency groups that users can install with pip install magicguard[dev]
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",           # Testing framework
+    "pytest-cov>=4.1.0",       # Coverage reporting for pytest
+    "pytest-mock>=3.12.0",     # Mocking library for tests
+    "black>=23.0.0",           # Code formatter
+    "ruff>=0.1.0",             # Fast Python linter
+    "mypy>=1.7.0",             # Static type checker
+    "types-click>=7.1.8",      # Type stubs for click library
+    "pre-commit>=3.5.0",       # Git hooks for code quality
+    "tox>=4.11.0",             # Test automation across Python versions
+]
+
+# URLs that will appear on PyPI page
+[project.urls]
+Homepage = "https://github.com/anthonynoelw/magicguard"
+Documentation = "https://github.com/anthonynoelw/magicguard#readme"
+Repository = "https://github.com/anthonynoelw/magicguard"
+Issues = "https://github.com/anthonynoelw/magicguard/issues"
+Changelog = "https://github.com/anthonynoelw/magicguard/releases"
+# CLI entry points - creates the 'magicguard' command after pip install
+[project.scripts]
+magicguard = "magicguard.cli.commands:cli"
+
+# Setuptools-specific configuration
+[tool.setuptools]
+# Automatically discover packages in src/ directory
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+# Look for packages only in src/
+where = ["src"]
+
+# Include these patterns in package distribution
+[tool.setuptools.package-data]
+magicguard = ["py.typed"]  # Marker file indicating package has type hints
+
+# Black formatter configuration
+[tool.black]
+line-length = 100              # Match project standard from copilot-instructions
+target-version = ["py311"]     # Target Python 3.11+
+include = '\.pyi?$'            # Format .py and .pyi files
+extend-exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+# Ruff linter configuration
+[tool.ruff]
+line-length = 100              # Match black's line length
+target-version = "py311"       # Target Python 3.11+
+
+# Select which rules to enable
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort (import sorting)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade (use modern Python syntax)
+    "B",      # flake8-bugbear (find likely bugs)
+    "A",      # flake8-builtins (avoid shadowing builtins)
+    "COM",    # flake8-commas
+    "C4",     # flake8-comprehensions
+    "DTZ",    # flake8-datetimez (timezone aware)
+    "T10",    # flake8-debugger (no leftover debugger)
+    "EM",     # flake8-errmsg
+    "ISC",    # flake8-implicit-str-concat
+    "ICN",    # flake8-import-conventions
+    "G",      # flake8-logging-format
+    "PIE",    # flake8-pie
+    "T20",    # flake8-print (no print statements)
+    "PT",     # flake8-pytest-style
+    "Q",      # flake8-quotes
+    "RSE",    # flake8-raise
+    "RET",    # flake8-return
+    "SIM",    # flake8-simplify
+    "TID",    # flake8-tidy-imports
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate (commented out code)
+    "PL",     # pylint
+    "RUF",    # Ruff-specific rules
+]
+
+# Ignore specific rules that may be too strict
+ignore = [
+    "T20",     # Allow print statements (needed for CLI output)
+    "G004",    # Allow f-strings in logging
+    "PLR0913", # Allow more than 5 function arguments when needed
+]
+
+# Exclude these directories from linting
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+# Apply fixes automatically where possible
+fix = true
+
+# Show fixes that were applied
+show-fixes = true
+
+[tool.ruff.per-file-ignores]
+# Tests can use assertions and magic values
+"tests/**/*.py" = ["S101", "PLR2004"]
+
+# Mypy static type checker configuration
+[tool.mypy]
+python_version = "3.11"        # Match minimum Python version
+warn_return_any = true          # Warn if function returns Any
+warn_unused_configs = true      # Warn about unused mypy config
+disallow_untyped_defs = true    # All functions must have type hints
+disallow_any_generics = true    # Generic types must be fully specified
+strict_equality = true          # Strict equality checks
+warn_redundant_casts = true     # Warn about unnecessary casts
+warn_unused_ignores = true      # Warn about unnecessary type: ignore
+no_implicit_reexport = true     # Explicit __all__ or import from __init__
+check_untyped_defs = true       # Check body of untyped functions
+strict = true                   # Enable all strict checks
+
+# Per-module overrides
+[[tool.mypy.overrides]]
+module = "tests.*"              # Relax some rules for test files
+disallow_untyped_defs = false
+
+# Pytest configuration
+[tool.pytest.ini_options]
+# Where to look for tests
+testpaths = ["tests"]
+
+# Test discovery patterns
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Minimum test coverage threshold (will fail if below this)
+addopts = [
+    "--cov=src/magicguard",     # Measure coverage for magicguard package
+    "--cov-report=term-missing", # Show missing lines in terminal
+    "--cov-report=html",         # Generate HTML coverage report
+    "--cov-report=xml",          # Generate XML for CI tools
+    "--cov-fail-under=80",       # Fail if coverage < 80%
+    "--strict-markers",          # Error on unknown pytest markers
+    "--strict-config",           # Error on unknown pytest config
+    "-v",                        # Verbose output
+    "-ra",                       # Show summary of all test outcomes
+]
+
+# Custom pytest markers (for categorizing tests)
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src"]                # Measure coverage for src/ directory
+branch = true                   # Measure branch coverage (if/else)
+omit = [
+    "*/tests/*",                # Don't measure coverage of tests
+    "*/__init__.py",            # Don't measure __init__ files
+    "*/site-packages/*",        # Don't measure installed packages
+]
+
+[tool.coverage.report]
+precision = 2                   # Show 2 decimal places
+show_missing = true             # Show line numbers of missing coverage
+skip_covered = false            # Show fully covered files too
+
+# Fail if these coverage targets not met
+fail_under = 80                 # Overall minimum coverage
+exclude_lines = [
+    "pragma: no cover",         # Allow explicit coverage exclusion
+    "def __repr__",             # Don't require coverage of __repr__
+    "raise AssertionError",     # Don't require coverage of assertions
+    "raise NotImplementedError", # Don't require coverage of abstract methods
+    "if __name__ == .__main__.:", # Don't require coverage of main blocks
+    "if TYPE_CHECKING:",        # Don't require coverage of type-checking blocks
+    "@abstractmethod",          # Don't require coverage of abstract methods
+]
+
+[tool.coverage.html]
+directory = "htmlcov"           # Output directory for HTML report
