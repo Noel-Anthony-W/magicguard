@@ -331,9 +331,9 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## 👤 Author
 
-**Anthony Weiß**
+### Anthony Weiß
 
-- Email: weiss.anthonynoel@gmail.com
+- Email: [weissanthony.code@gmail.com](weissanthony.code@gmail.com)
 - GitHub: [@anthonynoelw](https://github.com/anthonynoelw)
 
 ## 🙏 Acknowledgments
