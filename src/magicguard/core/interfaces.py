@@ -570,6 +570,11 @@ IValidator = ValidatorProtocol
 ILogger = LoggerProtocol
 IDataLoader = DataLoaderProtocol
 
+# Additional legacy aliases for backward compatibility
+IFileValidator = ValidatorProtocol
+ISignatureReader = ReaderProtocol
+ISignatureReaderFactory = ReaderFactoryProtocol
+
 __all__ = [
     # Storage Protocols
     "DatabaseProtocol",
@@ -588,4 +593,7 @@ __all__ = [
     "IValidator",
     "ILogger",
     "IDataLoader",
+    "IFileValidator",
+    "ISignatureReader",
+    "ISignatureReaderFactory",
 ]
