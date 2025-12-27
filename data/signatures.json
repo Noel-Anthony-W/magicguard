@@ -1,0 +1,213 @@
+{
+  "version": "1.0",
+  "description": "File type signatures (magic bytes) for MagicGuard validation",
+  "last_updated": "2025-12-26",
+  "signatures": [
+    {
+      "extension": "pdf",
+      "magic_bytes": "25504446",
+      "offset": 0,
+      "description": "PDF Document",
+      "mime_type": "application/pdf"
+    },
+    {
+      "extension": "png",
+      "magic_bytes": "89504E47",
+      "offset": 0,
+      "description": "PNG Image",
+      "mime_type": "image/png"
+    },
+    {
+      "extension": "jpg",
+      "magic_bytes": "FFD8FFE0",
+      "offset": 0,
+      "description": "JPEG Image (JFIF)",
+      "mime_type": "image/jpeg"
+    },
+    {
+      "extension": "jpg",
+      "magic_bytes": "FFD8FFE1",
+      "offset": 0,
+      "description": "JPEG Image (Exif)",
+      "mime_type": "image/jpeg"
+    },
+    {
+      "extension": "gif",
+      "magic_bytes": "474946383961",
+      "offset": 0,
+      "description": "GIF Image (89a)",
+      "mime_type": "image/gif"
+    },
+    {
+      "extension": "gif",
+      "magic_bytes": "474946383761",
+      "offset": 0,
+      "description": "GIF Image (87a)",
+      "mime_type": "image/gif"
+    },
+    {
+      "extension": "bmp",
+      "magic_bytes": "424D",
+      "offset": 0,
+      "description": "Bitmap Image",
+      "mime_type": "image/bmp"
+    },
+    {
+      "extension": "ico",
+      "magic_bytes": "00000100",
+      "offset": 0,
+      "description": "ICO Image",
+      "mime_type": "image/x-icon"
+    },
+    {
+      "extension": "webp",
+      "magic_bytes": "52494646",
+      "offset": 0,
+      "description": "WebP Image",
+      "mime_type": "image/webp"
+    },
+    {
+      "extension": "zip",
+      "magic_bytes": "504B0304",
+      "offset": 0,
+      "description": "ZIP Archive",
+      "mime_type": "application/zip"
+    },
+    {
+      "extension": "docx",
+      "magic_bytes": "504B0304",
+      "offset": 0,
+      "description": "Microsoft Word Document (ZIP-based)",
+      "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "requires_deep_check": true
+    },
+    {
+      "extension": "xlsx",
+      "magic_bytes": "504B0304",
+      "offset": 0,
+      "description": "Microsoft Excel Spreadsheet (ZIP-based)",
+      "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "requires_deep_check": true
+    },
+    {
+      "extension": "pptx",
+      "magic_bytes": "504B0304",
+      "offset": 0,
+      "description": "Microsoft PowerPoint Presentation (ZIP-based)",
+      "mime_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "requires_deep_check": true
+    },
+    {
+      "extension": "rar",
+      "magic_bytes": "526172211A07",
+      "offset": 0,
+      "description": "RAR Archive",
+      "mime_type": "application/x-rar-compressed"
+    },
+    {
+      "extension": "7z",
+      "magic_bytes": "377ABCAF271C",
+      "offset": 0,
+      "description": "7-Zip Archive",
+      "mime_type": "application/x-7z-compressed"
+    },
+    {
+      "extension": "gz",
+      "magic_bytes": "1F8B08",
+      "offset": 0,
+      "description": "GZIP Archive",
+      "mime_type": "application/gzip"
+    },
+    {
+      "extension": "tar",
+      "magic_bytes": "7573746172",
+      "offset": 257,
+      "description": "TAR Archive",
+      "mime_type": "application/x-tar"
+    },
+    {
+      "extension": "exe",
+      "magic_bytes": "4D5A",
+      "offset": 0,
+      "description": "Windows Executable",
+      "mime_type": "application/x-msdownload"
+    },
+    {
+      "extension": "dll",
+      "magic_bytes": "4D5A",
+      "offset": 0,
+      "description": "Windows DLL",
+      "mime_type": "application/x-msdownload"
+    },
+    {
+      "extension": "elf",
+      "magic_bytes": "7F454C46",
+      "offset": 0,
+      "description": "Linux ELF Executable",
+      "mime_type": "application/x-executable"
+    },
+    {
+      "extension": "mp3",
+      "magic_bytes": "494433",
+      "offset": 0,
+      "description": "MP3 Audio (ID3v2)",
+      "mime_type": "audio/mpeg"
+    },
+    {
+      "extension": "mp3",
+      "magic_bytes": "FFFB",
+      "offset": 0,
+      "description": "MP3 Audio (MPEG Layer 3)",
+      "mime_type": "audio/mpeg"
+    },
+    {
+      "extension": "mp4",
+      "magic_bytes": "66747970",
+      "offset": 4,
+      "description": "MP4 Video",
+      "mime_type": "video/mp4"
+    },
+    {
+      "extension": "avi",
+      "magic_bytes": "52494646",
+      "offset": 0,
+      "description": "AVI Video",
+      "mime_type": "video/x-msvideo"
+    },
+    {
+      "extension": "mkv",
+      "magic_bytes": "1A45DFA3",
+      "offset": 0,
+      "description": "Matroska Video",
+      "mime_type": "video/x-matroska"
+    },
+    {
+      "extension": "wav",
+      "magic_bytes": "52494646",
+      "offset": 0,
+      "description": "WAV Audio",
+      "mime_type": "audio/wav"
+    },
+    {
+      "extension": "flac",
+      "magic_bytes": "664C6143",
+      "offset": 0,
+      "description": "FLAC Audio",
+      "mime_type": "audio/flac"
+    },
+    {
+      "extension": "sqlite",
+      "magic_bytes": "53514C69746520666F726D6174",
+      "offset": 0,
+      "description": "SQLite Database",
+      "mime_type": "application/x-sqlite3"
+    },
+    {
+      "extension": "xml",
+      "magic_bytes": "3C3F786D6C",
+      "offset": 0,
+      "description": "XML Document",
+      "mime_type": "application/xml"
+    }
+  ]
+}

@@ -1,19 +1,23 @@
-# src/magicguard/core/validator.py
 """Core file validation logic using magic bytes.
 
 This module provides the FileValidator class for validating files against
 their declared extensions using magic byte signatures.
+
+Implements the ValidatorProtocol and uses dependency injection for
+database and file readers.
 """
 
+import hashlib
+import logging
 from pathlib import Path
 from typing import Optional
 
-from magicguard.core.database import SignatureDatabase
 from magicguard.core.exceptions import (
     FileReadError,
     InvalidSignatureError,
     ValidationError,
 )
+from magicguard.utils.logger import get_logger
 
 # Maximum file size to read (100MB)
 MAX_FILE_SIZE = 104857600
@@ -22,23 +26,61 @@ MAX_FILE_SIZE = 104857600
 class FileValidator:
     """Validates files using magic byte signatures.
     
+    Implements the ValidatorProtocol. Uses dependency injection for
+    database access and file reading strategies.
+    
     Reads magic bytes from files and compares them against signatures
-    stored in the database to detect file type spoofing.
+    stored in the database to detect file type spoofing. Uses the Strategy
+    pattern for different file types (simple vs. ZIP-based).
     
     Attributes:
-        database: SignatureDatabase instance for signature lookups
+        database: DatabaseProtocol instance for signature lookups
+        reader_factory: ReaderFactoryProtocol for creating appropriate readers
+        logger: LoggerProtocol instance for diagnostic output
     """
     
-    def __init__(self, db_path: Optional[str] = None):
-        """Initialize file validator.
+    def __init__(
+        self,
+        database=None,
+        reader_factory=None,
+        logger: Optional[logging.Logger] = None,
+    ):
+        """Initialize file validator with dependency injection.
         
         Args:
-            db_path: Path to signature database. If None, uses default location.
+            database: DatabaseProtocol implementation. If None, creates
+                a new Database with default path.
+            reader_factory: ReaderFactoryProtocol instance. If None, creates
+                a new ReaderFactory.
+            logger: LoggerProtocol instance. If None, creates logger for this module.
         """
-        self.database = SignatureDatabase(db_path)
+        self.logger = logger or get_logger(__name__)
+        
+        # Lazy import to avoid circular dependency
+        if database is None:
+            from magicguard.core.database import Database
+            self.database = Database(logger=self.logger)
+            self.logger.debug("Created default Database")
+        else:
+            self.database = database
+            self.logger.debug("Using injected database")
+        
+        if reader_factory is None:
+            from magicguard.core.readers import ReaderFactory
+            self.reader_factory = ReaderFactory(logger=self.logger)
+            self.logger.debug("Created default ReaderFactory")
+        else:
+            self.reader_factory = reader_factory
+            self.logger.debug("Using injected reader factory")
+        
+        self.logger.info("FileValidator initialized successfully")
     
     def validate(self, file_path: str) -> bool:
         """Validate that file matches its declared extension.
+        
+        Uses the appropriate signature reader strategy based on file type
+        and validates both magic bytes and internal structure (for complex
+        formats like Office documents).
         
         Args:
             file_path: Path to file to validate
@@ -53,47 +95,82 @@ class FileValidator:
         """
         path = Path(file_path)
         
+        self.logger.info(f"Validating file: {file_path}")
+        
         # Verify file exists and is readable
         if not path.exists():
-            raise FileReadError(f"File not found: '{file_path}'")
+            error_msg = f"File not found: '{file_path}'"
+            self.logger.error(error_msg)
+            raise FileReadError(error_msg)
         
         if not path.is_file():
-            raise FileReadError(f"Path is not a file: '{file_path}'")
+            error_msg = f"Path is not a file: '{file_path}'"
+            self.logger.error(error_msg)
+            raise FileReadError(error_msg)
         
         # Check file size
         file_size = path.stat().st_size
         if file_size > MAX_FILE_SIZE:
-            raise FileReadError(
+            error_msg = (
                 f"File too large: {file_size} bytes (max: {MAX_FILE_SIZE})"
             )
+            self.logger.error(error_msg)
+            raise FileReadError(error_msg)
+        
+        self.logger.debug(f"File size: {file_size} bytes")
         
         # Get extension
         extension = path.suffix.lstrip('.').lower()
         if not extension:
-            raise ValidationError(f"File has no extension: '{file_path}'")
+            error_msg = f"File has no extension: '{file_path}'"
+            self.logger.error(error_msg)
+            raise ValidationError(error_msg)
+        
+        self.logger.debug(f"File extension: .{extension}")
+        
+        # Get appropriate signature reader for this file type
+        reader = self.reader_factory.get_reader(extension)
         
         # Get signatures for extension
         signatures = self.database.get_signatures(extension)
+        self.logger.debug(f"Checking {len(signatures)} signature(s)")
         
         # Check each signature (some file types have multiple)
         for magic_hex, offset in signatures:
-            if self._check_signature(file_path, magic_hex, offset):
-                return True
+            if self._check_signature(file_path, magic_hex, offset, reader):
+                # Magic bytes match, now validate structure if needed
+                if reader.validate_structure(file_path, extension):
+                    self.logger.info(
+                        f"✓ File '{file_path}' validated successfully as '.{extension}'"
+                    )
+                    return True
+                else:
+                    error_msg = (
+                        f"File '{file_path}' has correct magic bytes for '.{extension}' "
+                        f"but failed internal structure validation"
+                    )
+                    self.logger.error(error_msg)
+                    raise ValidationError(error_msg)
         
         # If we get here, none of the signatures matched
-        actual_bytes = self._read_magic_bytes(file_path, 8, 0)
-        raise ValidationError(
+        actual_bytes = reader.read_signature(file_path, 8, 0)
+        error_msg = (
             f"File '{file_path}' has extension '.{extension}' but magic bytes "
             f"don't match. Expected: {magic_hex}, Found: {actual_bytes.hex().upper()}"
         )
+        self.logger.error(error_msg)
+        raise ValidationError(error_msg)
     
-    def _check_signature(self, file_path: str, magic_hex: str, offset: int) -> bool:
+    def _check_signature(
+        self, file_path: str, magic_hex: str, offset: int, reader
+    ) -> bool:
         """Check if file has expected magic bytes at offset.
         
         Args:
             file_path: Path to file
             magic_hex: Expected magic bytes as hex string
             offset: Byte offset to check
+            reader: Signature reader to use
             
         Returns:
             True if magic bytes match, False otherwise
@@ -105,36 +182,26 @@ class FileValidator:
         try:
             expected_bytes = bytes.fromhex(magic_hex)
         except ValueError:
-            raise InvalidSignatureError(
+            error_msg = (
                 f"Invalid magic bytes format: '{magic_hex}' (must be hex string)"
             )
+            self.logger.error(error_msg)
+            raise InvalidSignatureError(error_msg)
         
-        actual_bytes = self._read_magic_bytes(file_path, len(expected_bytes), offset)
+        actual_bytes = reader.read_signature(file_path, len(expected_bytes), offset)
         
-        return actual_bytes == expected_bytes
-    
-    def _read_magic_bytes(self, file_path: str, length: int, offset: int = 0) -> bytes:
-        """Read magic bytes from file.
-        
-        Args:
-            file_path: Path to file
-            length: Number of bytes to read
-            offset: Byte offset to start reading from
-            
-        Returns:
-            Bytes read from file
-            
-        Raises:
-            FileReadError: If file cannot be read
-        """
-        try:
-            with open(file_path, 'rb') as f:
-                f.seek(offset)
-                return f.read(length)
-        except IOError as e:
-            raise FileReadError(
-                f"Failed to read file '{file_path}': {str(e)}"
+        match = actual_bytes == expected_bytes
+        if match:
+            self.logger.debug(
+                f"✓ Magic bytes match at offset {offset}: {magic_hex}"
             )
+        else:
+            self.logger.debug(
+                f"✗ Magic bytes mismatch at offset {offset}. "
+                f"Expected: {magic_hex}, Got: {actual_bytes.hex().upper()}"
+            )
+        
+        return match
     
     def get_file_hash(self, file_path: str) -> str:
         """Calculate SHA-256 hash of file.
@@ -148,7 +215,7 @@ class FileValidator:
         Raises:
             FileReadError: If file cannot be read
         """
-        import hashlib
+        self.logger.debug(f"Calculating SHA-256 hash for: {file_path}")
         
         try:
             sha256 = hashlib.sha256()
@@ -156,15 +223,19 @@ class FileValidator:
                 # Read in chunks to handle large files
                 for chunk in iter(lambda: f.read(8192), b''):
                     sha256.update(chunk)
-            return sha256.hexdigest()
+            
+            file_hash = sha256.hexdigest()
+            self.logger.debug(f"SHA-256 hash: {file_hash}")
+            return file_hash
             
         except IOError as e:
-            raise FileReadError(
-                f"Failed to hash file '{file_path}': {str(e)}"
-            )
+            error_msg = f"Failed to hash file '{file_path}': {str(e)}"
+            self.logger.error(error_msg)
+            raise FileReadError(error_msg)
     
     def close(self) -> None:
-        """Close database connection."""
+        """Close database connection and cleanup resources."""
+        self.logger.debug("Closing FileValidator and associated resources")
         self.database.close()
     
     def __enter__(self):
