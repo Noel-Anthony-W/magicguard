@@ -27,8 +27,8 @@ from magicguard.core.interfaces import (
     IFileValidator,
     ILogger,
     IDatabase,
-    ISignatureReader,
-    ISignatureReaderFactory,
+    IReader,
+    IReaderFactory,
 )
 from magicguard.core.readers import (
     SimpleReader,
@@ -56,8 +56,8 @@ __all__ = [
     "LoggerProtocol",
     # Legacy protocol aliases
     "IDatabase",
-    "ISignatureReader",
-    "ISignatureReaderFactory",
+    "IReader",
+    "IReaderFactory",
     "IFileValidator",
     "ILogger",
     "IDataLoader",

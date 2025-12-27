@@ -182,9 +182,10 @@ def initialize_default_signatures(database, logger: Optional[logging.Logger] = N
     # Load from bundled file
     # Try multiple possible locations
     possible_paths = [
-        Path(__file__).parent.parent.parent.parent / "data" / "signatures.json",
-        Path.cwd() / "data" / "signatures.json",
-        Path.home() / ".magicguard" / "data" / "signatures.json",
+        Path(__file__).parent.parent / "data" / "signatures.json",  # Packaged location
+        Path(__file__).parent.parent.parent.parent / "data" / "signatures.json",  # Development location
+        Path.cwd() / "data" / "signatures.json",  # Current directory
+        Path.home() / ".magicguard" / "data" / "signatures.json",  # User config
     ]
     
     for sig_path in possible_paths:
