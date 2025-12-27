@@ -1,0 +1,193 @@
+# =============================================================================
+# MagicGuard Docker Compose Configuration
+# =============================================================================
+# Provides multiple service configurations for different use cases
+# =============================================================================
+
+# =============================================================================
+# Services
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Service 1: Interactive Scanner (default)
+  # ---------------------------------------------------------------------------
+  # Usage: docker-compose run scanner scan /scan/document.pdf
+  # ---------------------------------------------------------------------------
+  scanner:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: magicguard:latest
+    container_name: magicguard-scanner
+    
+    # Volume mounts
+    volumes:
+      # Mount directory containing files to scan (read-only for safety)
+      - ${SCAN_DIR:-./scan}:/scan:ro
+      # Persistent signature database
+      - magicguard-data:/data
+      # Log output
+      - ${LOG_DIR:-./logs}:/logs
+    
+    # Environment variables
+    environment:
+      - MAGICGUARD_DB_PATH=/data/signatures.db
+      - MAGICGUARD_LOG_DIR=/logs
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    
+    # Security hardening (RECOMMENDED - uncomment to enable)
+    # read_only: true
+    # tmpfs:
+    #   - /tmp:noexec,nosuid,size=10M
+    # cap_drop:
+    #   - ALL
+    # security_opt:
+    #   - no-new-privileges:true
+    
+    # Resource limits (RECOMMENDED - adjust based on your needs)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.0'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.25'
+    #       memory: 128M
+    
+    # Restart policy (for long-running services)
+    restart: "no"
+    
+    # Network mode (none for maximum isolation, bridge for default)
+    network_mode: bridge
+
+  # ---------------------------------------------------------------------------
+  # Service 2: Directory Scanner (batch processing)
+  # ---------------------------------------------------------------------------
+  # Usage: docker-compose run batch-scanner
+  # ---------------------------------------------------------------------------
+  batch-scanner:
+    image: magicguard:latest
+    container_name: magicguard-batch
+    
+    volumes:
+      - ${SCAN_DIR:-./scan}:/scan:ro
+      - magicguard-data:/data
+      - ${LOG_DIR:-./logs}:/logs
+    
+    environment:
+      - MAGICGUARD_DB_PATH=/data/signatures.db
+      - MAGICGUARD_LOG_DIR=/logs
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    
+    # Automatically scan directory recursively
+    command: scan-dir /scan --recursive --verbose
+    
+    # Security hardening
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=10M
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    
+    restart: "no"
+    network_mode: none  # No network needed for file scanning
+
+  # ---------------------------------------------------------------------------
+  # Service 3: Status Check / Health Monitor
+  # ---------------------------------------------------------------------------
+  # Usage: docker-compose run status
+  # ---------------------------------------------------------------------------
+  status:
+    image: magicguard:latest
+    container_name: magicguard-status
+    
+    volumes:
+      - magicguard-data:/data
+      - ${LOG_DIR:-./logs}:/logs
+    
+    environment:
+      - MAGICGUARD_DB_PATH=/data/signatures.db
+      - MAGICGUARD_LOG_DIR=/logs
+    
+    command: status
+    
+    restart: "no"
+    network_mode: none
+
+  # ---------------------------------------------------------------------------
+  # Service 4: Signature List Viewer
+  # ---------------------------------------------------------------------------
+  # Usage: docker-compose run list-sigs
+  # ---------------------------------------------------------------------------
+  list-sigs:
+    image: magicguard:latest
+    container_name: magicguard-list
+    
+    volumes:
+      - magicguard-data:/data
+    
+    environment:
+      - MAGICGUARD_DB_PATH=/data/signatures.db
+    
+    command: list-signatures
+    
+    restart: "no"
+    network_mode: none
+
+# =============================================================================
+# Named Volumes (persistent data)
+# =============================================================================
+volumes:
+  # Signature database - persists across container restarts
+  magicguard-data:
+    driver: local
+    name: magicguard-data
+
+# =============================================================================
+# Usage Examples:
+# =============================================================================
+# 1. Scan a single file:
+#    docker-compose run scanner scan /scan/document.pdf
+#
+# 2. Scan directory recursively:
+#    docker-compose run batch-scanner
+#
+# 3. Scan with verbose output:
+#    docker-compose run scanner scan /scan/file.pdf --verbose
+#
+# 4. Check status:
+#    docker-compose run status
+#
+# 5. List supported file types:
+#    docker-compose run list-sigs
+#
+# 6. Scan with custom directory:
+#    SCAN_DIR=/path/to/files docker-compose run scanner scan-dir /scan
+#
+# =============================================================================
+# Security Hardening Recommendations:
+# =============================================================================
+# LEVEL 1 - Basic (Uncomment in service definition):
+#   - read_only: true
+#   - cap_drop: ALL
+#   - security_opt: no-new-privileges
+#
+# LEVEL 2 - Moderate (Add to service):
+#   - pids_limit: 100
+#   - Resource limits (CPU/Memory)
+#   - tmpfs for /tmp
+#
+# LEVEL 3 - High (Add to service):
+#   - network_mode: none (if no network needed)
+#   - AppArmor/SELinux profiles
+#   - Seccomp profiles
+#
+# LEVEL 4 - Maximum (External tools):
+#   - Run with gVisor (runsc runtime)
+#   - Use kata-containers for VM isolation
+#   - Implement least-privilege seccomp profile
+#
+# =============================================================================

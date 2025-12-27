@@ -25,12 +25,12 @@ license = {text = "GNU General Public License v3 (GPLv3)"}
 
 # Author information - replace with your details
 authors = [
-    {name = "Anthony Weiß", email = "weiss.anthonynoel@gmail.com"}
+    {name = "Anthony Weiß", email = "weissanthony.code@gmail.com"}
 ]
 
 # Maintainer info (can be same as authors or different)
 maintainers = [
-    {name = "Anthony Weiß", email = "weiss.anthonynoel@gmail.com"}
+    {name = "Anthony Weiß", email = "weissanthony.code@gmail.com"}
 ]
 
 # PyPI classifiers for discoverability and metadata
@@ -41,7 +41,7 @@ classifiers = [
     "Intended Audience :: System Administrators",
     "Topic :: Security",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

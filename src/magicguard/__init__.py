@@ -13,7 +13,7 @@ Example usage:
 
 __version__ = "0.1.0"
 __author__ = "Anthony Weiß"
-__email__ = "weiss.anthonynoel@gmail.com"
+__email__ = "weissanthony.code@gmail.com"
 
 from magicguard.core import (
     FileValidator,

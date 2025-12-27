@@ -17,7 +17,7 @@ MagicGuard validates files by checking their **magic bytes** (file signatures) a
 - **SHA-256 Hashing**: Calculate file integrity hashes
 - **CLI Interface**: Easy-to-use command-line tools
 - **Extensible Architecture**: Protocol-based design with dependency injection
-- **29 File Types Supported**: Documents, images, archives, executables, media files
+- **26+ File Types Supported**: 29 signatures across documents, images, archives, executables, media
 
 ## 📦 Installation
 
@@ -97,7 +97,7 @@ validator.close()
 
 MagicGuard follows a clean, layered architecture:
 
-```
+``` folder
 src/magicguard/
 ├── core/               # Business logic (UI-independent)
 │   ├── validator.py    # File validation orchestration
@@ -124,21 +124,27 @@ src/magicguard/
 ## 📋 Supported File Types
 
 ### Documents
+
 - PDF, DOCX, XLSX, PPTX, XML
 
 ### Images
+
 - PNG, JPG/JPEG, GIF, BMP, ICO, WebP
 
 ### Archives
+
 - ZIP, RAR, 7Z, TAR, GZ
 
 ### Executables
+
 - EXE, DLL, ELF
 
 ### Media
+
 - MP3, MP4, AVI, MKV, WAV, FLAC
 
 ### Databases
+
 - SQLite
 
 ## 🧪 Testing
@@ -157,6 +163,7 @@ pytest tests/test_validator.py -v
 ```
 
 **Test Coverage**: 82.64% overall
+
 - Core modules: 85%+
 - Validator: 96.58%
 - Readers: 87.30%
@@ -165,7 +172,9 @@ pytest tests/test_validator.py -v
 ## 🔒 Security Use Cases
 
 ### Malware Detection
+
 Detect executables disguised as documents:
+
 ```bash
 magicguard scan suspicious.pdf
 # ✗ suspicious.pdf - INVALID
@@ -173,13 +182,17 @@ magicguard scan suspicious.pdf
 ```
 
 ### Email Attachment Scanning
+
 Validate attachments before opening:
+
 ```bash
 magicguard scan-dir ~/Downloads/email-attachments --recursive
 ```
 
 ### Upload Validation
+
 Integrate into file upload workflows:
+
 ```python
 from magicguard.core.validator import FileValidator
 
@@ -194,28 +207,88 @@ def validate_upload(file_path):
 
 ## 🐳 Docker Support
 
+MagicGuard includes production-ready Docker support with multi-architecture images and comprehensive security hardening.
+
+### Quick Start
+
 ```bash
-# Build image
-docker build -f docker/Dockerfile -t magicguard:latest .
+# Build the image
+docker build -t magicguard:latest -f docker/Dockerfile .
 
-# Run scan
-docker run --rm -v /path/to/files:/data magicguard:latest scan /data/file.pdf
+# Scan a file
+docker run --rm \
+  -v "$PWD/samples:/scan:ro" \
+  magicguard:latest scan /scan/document.pdf
 
-# Run with docker-compose
-docker-compose -f docker/docker-compose.yml up
+# Scan directory recursively
+docker run --rm \
+  -v "$PWD/files:/scan:ro" \
+  magicguard:latest scan-dir --recursive /scan
+
+# List supported file types
+docker run --rm magicguard:latest list-signatures
 ```
+
+### Using Docker Compose
+
+```bash
+# Scan a single file
+SCAN_DIR="$PWD/samples" docker-compose -f docker/docker-compose.yml run --rm scanner scan /scan/file.pdf
+
+# Scan directory with batch scanner
+SCAN_DIR="$PWD/samples" docker-compose -f docker/docker-compose.yml run --rm batch-scanner
+
+# Check status
+docker-compose -f docker/docker-compose.yml run --rm status
+```
+
+### Multi-Architecture Support
+
+Build for multiple platforms (amd64, arm64, arm/v7):
+
+```bash
+# Using the build script
+./docker/build-multiarch.sh
+
+# Build and push to registry
+PUSH=true IMAGE_NAME=yourusername/magicguard ./docker/build-multiarch.sh
+```
+
+### Security Features
+
+- **Multi-stage Alpine build** - Minimal 91MB image
+- **Non-root user** (UID 1000) for enhanced security
+- **4 security hardening levels** - From basic to maximum paranoid
+- **Read-only filesystem** support with tmpfs
+- **Capability dropping** - Remove all unnecessary Linux capabilities
+- **Seccomp profiles** - Restrict system calls
+- **Network isolation** - Optional no-network mode
+
+For comprehensive Docker documentation, see **[docker/README.md](docker/README.md)** (400+ lines covering deployment, security, CI/CD, and troubleshooting).
 
 ## 🔧 Configuration
 
+### Local Installation
+
 MagicGuard stores data in `~/.magicguard/`:
 
-```
+``` folder
 ~/.magicguard/
 ├── data/
 │   └── signatures.db    # Signature database
 └── log/
     └── YYYY-MM-DD.log   # Daily rotating logs
 ```
+
+### Docker Deployment
+
+When running in Docker, paths are:
+
+- Database: `/data/signatures.db` (use named volumes for persistence)
+- Logs: `/logs/` (mount as volume or use tmpfs)
+- Scan files: `/scan/` (mount read-only)
+
+See [docker/README.md](docker/README.md) for volume configuration details.
 
 ## 📝 Development
 
@@ -258,8 +331,9 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## 👤 Author
 
-**Anthony Weiß**
-- Email: weiss.anthonynoel@gmail.com
+### Anthony Weiß
+
+- Email: [weissanthony.code@gmail.com](weissanthony.code@gmail.com)
 - GitHub: [@anthonynoelw](https://github.com/anthonynoelw)
 
 ## 🙏 Acknowledgments
@@ -270,6 +344,7 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 ## 📚 Documentation
 
 For detailed documentation:
+
 - [Architecture Guide](docs/architecture.md) (coming soon)
 - [API Reference](docs/api.md) (coming soon)
 - [CLI Guide](docs/cli.md) (coming soon)
