@@ -60,7 +60,7 @@ FROM python:${PYTHON_VERSION}-alpine
 LABEL org.opencontainers.image.title="MagicGuard"
 LABEL org.opencontainers.image.description="File type validator using magic bytes"
 LABEL org.opencontainers.image.version="0.1.0"
-LABEL org.opencontainers.image.authors="Anthony Weiß <weissanthony.code@gmail.com>"
+LABEL org.opencontainers.image.authors="Anthony Weiß <weiss.anthonynoel@gmail.com>"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
 LABEL org.opencontainers.image.source="https://github.com/anthonynoelw/magicguard"
 
