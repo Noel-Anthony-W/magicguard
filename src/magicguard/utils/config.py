@@ -46,6 +46,7 @@ ENV_DB_PATH = "MAGICGUARD_DB_PATH"
 ENV_LOG_LEVEL = "MAGICGUARD_LOG_LEVEL"
 ENV_LOG_DIR = "MAGICGUARD_LOG_DIR"
 ENV_DATA_DIR = "MAGICGUARD_DATA_DIR"
+ENV_MAX_FILE_SIZE = "MAGICGUARD_MAX_FILE_SIZE"
 
 
 def get_database_path() -> Path:
@@ -114,6 +115,44 @@ def get_log_level() -> str:
         Log level string (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     """
     return os.getenv(ENV_LOG_LEVEL, DEFAULT_LOG_LEVEL).upper()
+
+
+def get_max_file_size() -> int:
+    """Get the maximum file size limit.
+    
+    Checks environment variable first, then returns default.
+    Validates that the value is a positive integer.
+    
+    Returns:
+        Maximum file size in bytes
+        
+    Example:
+        >>> max_size = get_max_file_size()
+        >>> print(f"Max file size: {max_size / 1024 / 1024:.0f}MB")
+        Max file size: 100MB
+    """
+    env_value = os.getenv(ENV_MAX_FILE_SIZE)
+    if env_value:
+        try:
+            size = int(env_value)
+            if size <= 0:
+                # Log warning and use default
+                import logging
+                logging.warning(
+                    f"Invalid MAX_FILE_SIZE: {env_value} (must be positive). "
+                    f"Using default: {MAX_FILE_SIZE}"
+                )
+                return MAX_FILE_SIZE
+            return size
+        except ValueError:
+            # Log warning and use default
+            import logging
+            logging.warning(
+                f"Invalid MAX_FILE_SIZE: {env_value} (must be integer). "
+                f"Using default: {MAX_FILE_SIZE}"
+            )
+            return MAX_FILE_SIZE
+    return MAX_FILE_SIZE
 
 
 def ensure_directories() -> None:

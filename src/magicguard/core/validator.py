@@ -19,8 +19,8 @@ from magicguard.core.exceptions import (
 )
 from magicguard.utils.logger import get_logger
 
-# Maximum file size to read (100MB)
-MAX_FILE_SIZE = 104857600
+# Default maximum file size to read (100MB)
+DEFAULT_MAX_FILE_SIZE = 104857600
 
 
 class FileValidator:
@@ -44,6 +44,7 @@ class FileValidator:
         database=None,
         reader_factory=None,
         logger: Optional[logging.Logger] = None,
+        max_file_size: Optional[int] = None,
     ):
         """Initialize file validator with dependency injection.
         
@@ -53,8 +54,18 @@ class FileValidator:
             reader_factory: ReaderFactoryProtocol instance. If None, creates
                 a new ReaderFactory.
             logger: LoggerProtocol instance. If None, creates logger for this module.
+            max_file_size: Maximum file size in bytes. If None, uses default (100MB).
         """
         self.logger = logger or get_logger(__name__)
+        
+        # Set maximum file size (use config if not provided)
+        if max_file_size is None:
+            from magicguard.utils.config import get_max_file_size
+            self.max_file_size = get_max_file_size()
+        else:
+            self.max_file_size = max_file_size
+        
+        self.logger.debug(f"Max file size set to: {self.max_file_size} bytes")
         
         # Lazy import to avoid circular dependency
         if database is None:
@@ -110,9 +121,9 @@ class FileValidator:
         
         # Check file size
         file_size = path.stat().st_size
-        if file_size > MAX_FILE_SIZE:
+        if file_size > self.max_file_size:
             error_msg = (
-                f"File too large: {file_size} bytes (max: {MAX_FILE_SIZE})"
+                f"File too large: {file_size} bytes (max: {self.max_file_size})"
             )
             self.logger.error(error_msg)
             raise FileReadError(error_msg)

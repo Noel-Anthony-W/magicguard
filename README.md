@@ -320,27 +320,171 @@ For comprehensive Docker documentation, see **[docker/README.md](docker/README.m
 
 ## 🔧 Configuration
 
-### Local Installation
+MagicGuard is highly configurable via environment variables, allowing flexible deployment across development, testing, and production environments.
+
+### Configuration Files
+
+MagicGuard supports environment-based configuration:
+
+1. **`.env.example`** - Template with all available configuration options (safe to commit)
+2. **`.env`** - Your local configuration (automatically ignored by git)
+
+```bash
+# Create your local configuration
+cp .env.example .env
+
+# Edit with your preferred values
+vim .env  # or nano, code, etc.
+```
+
+### Environment Variables
+
+All configuration variables are **optional** with sensible defaults:
+
+#### Core Configuration
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `MAGICGUARD_DB_PATH` | SQLite database file location | `~/.magicguard/data/signatures.db` | `/var/lib/magicguard/signatures.db` |
+| `MAGICGUARD_LOG_LEVEL` | Logging verbosity | `DEBUG` (dev), `INFO` (prod) | `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
+| `MAGICGUARD_LOG_DIR` | Directory for log files | `~/.magicguard/log` | `/var/log/magicguard` |
+| `MAGICGUARD_DATA_DIR` | Application data directory | `~/.magicguard/data` | `/var/lib/magicguard/data` || `MAGICGUARD_MAX_FILE_SIZE` | Maximum file size in bytes | `104857600` (100MB) | `209715200` (200MB), `52428800` (50MB) |
+#### Docker-Specific Variables
+
+| Variable | Description | Default | Used In |
+|----------|-------------|---------|---------|
+| `SCAN_DIR` | Directory to mount as `/scan` | `./scan` | docker-compose.yml |
+| `LOG_DIR` | Directory to mount as `/logs` | `./logs` | docker-compose.yml |
+| `LOG_LEVEL` | Container log level | `INFO` | docker-compose.yml |
+
+### Configuration Examples
+
+#### Development Setup
+
+```bash
+# .env for local development
+MAGICGUARD_LOG_LEVEL=DEBUG
+MAGICGUARD_DB_PATH=/tmp/magicguard-dev/signatures.db
+MAGICGUARD_LOG_DIR=/tmp/magicguard-dev/logs
+MAGICGUARD_MAX_FILE_SIZE=52428800  # 50MB for testing
+```
+
+```bash
+# Use development settings
+magicguard scan document.pdf --verbose
+```
+
+#### Production Setup
+
+```bash
+# .env for production deployment
+MAGICGUARD_LOG_LEVEL=WARNING
+MAGICGUARD_DB_PATH=/var/lib/magicguard/signatures.db
+MAGICGUARD_LOG_DIR=/var/log/magicguard
+MAGICGUARD_DATA_DIR=/var/lib/magicguard/data
+MAGICGUARD_MAX_FILE_SIZE=209715200  # 200MB for production
+```
+
+#### Testing/CI Setup
+
+```bash
+# Isolated testing environment
+export MAGICGUARD_DB_PATH=/tmp/test-magicguard/signatures.db
+export MAGICGUARD_LOG_DIR=/tmp/test-magicguard/logs
+export MAGICGUARD_LOG_LEVEL=DEBUG
+
+pytest tests/ --cov
+```
+
+#### Docker Configuration
+
+```bash
+# docker-compose configuration
+SCAN_DIR="$PWD/samples"
+LOG_DIR="$PWD/logs"
+LOG_LEVEL=INFO
+
+docker-compose -f docker/docker-compose.yml run --rm scanner scan /scan/file.pdf
+```
+
+### Application Limits
+
+#### Configurable Limits
+
+These can be overridden via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MAGICGUARD_MAX_FILE_SIZE` | 104857600 (100MB) | Maximum file size to process |
+
+#### Fixed Limits
+
+These constants are defined in [`src/magicguard/utils/config.py`](src/magicguard/utils/config.py) and **cannot** be overridden:
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `MAX_SIGNATURE_LENGTH` | 64 bytes | Maximum magic byte signature length |
+| `MAX_LOG_FILES` | 30 files | Keep 30 days of daily log files |
+
+### Directory Structure
+
+#### Local Installation
 
 MagicGuard stores data in `~/.magicguard/`:
 
-``` folder
+```
 ~/.magicguard/
 ├── data/
-│   └── signatures.db    # Signature database
+│   └── signatures.db    # SQLite signature database
 └── log/
-    └── YYYY-MM-DD.log   # Daily rotating logs
+    └── 2025-12-28.log   # Daily rotating logs (YYYY-MM-DD.log)
 ```
 
-### Docker Deployment
+#### Docker Deployment
 
 When running in Docker, paths are:
 
-- Database: `/data/signatures.db` (use named volumes for persistence)
-- Logs: `/logs/` (mount as volume or use tmpfs)
-- Scan files: `/scan/` (mount read-only)
+- **Database**: `/data/signatures.db` (use named volumes for persistence)
+- **Logs**: `/logs/` (mount as volume or use tmpfs)
+- **Scan files**: `/scan/` (mount read-only for security)
 
-See [docker/README.md](docker/README.md) for volume configuration details.
+See [docker/README.md](docker/README.md) for comprehensive volume configuration.
+
+### Code Usage
+
+The configuration system is used throughout the codebase:
+
+```python
+from magicguard.utils.config import (
+    get_database_path,  # Gets DB path (env or default)
+    get_log_level,      # Gets log level (env or default)
+    get_log_dir,        # Gets log directory (env or default)
+    get_max_file_size,  # Gets max file size (env or default)
+)
+
+# Database automatically uses configured path
+from magicguard.core.database import Database
+db = Database()  # Uses MAGICGUARD_DB_PATH or default
+
+# Logger respects MAGICGUARD_LOG_LEVEL
+from magicguard.utils.logger import get_logger
+logger = get_logger(__name__)  # Uses configured log level
+
+# Validator respects MAGICGUARD_MAX_FILE_SIZE
+from magicguard.core.validator import FileValidator
+validator = FileValidator()  # Uses MAGICGUARD_MAX_FILE_SIZE or default
+logger = get_logger(__name__)  # Uses configured log level
+```
+
+### Security Considerations
+
+⚠️ **Important Security Notes:**
+
+1. **Never commit `.env`** - Already in `.gitignore`
+2. **Use restrictive permissions**: `chmod 600 .env`
+3. **Use absolute paths** in production
+4. **Validate user-provided paths** before using
+5. **Avoid storing secrets** in environment variables when possible
 
 ## 📝 Development
 

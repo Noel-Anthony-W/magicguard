@@ -14,6 +14,7 @@ from magicguard.utils.config import (
     get_data_dir,
     get_log_dir,
     get_log_level,
+    get_max_file_size,
     ensure_directories,
 )
 from magicguard.utils.logger import get_logger, setup_logging, cleanup_old_logs
@@ -34,6 +35,7 @@ __all__ = [
     "get_data_dir",
     "get_log_dir",
     "get_log_level",
+    "get_max_file_size",
     "ensure_directories",
     # Logger exports
     "get_logger",
