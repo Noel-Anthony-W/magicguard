@@ -21,6 +21,58 @@ MagicGuard validates files by checking their **magic bytes** (file signatures) a
 
 ## 📦 Installation
 
+### Automated Installation (Recommended)
+
+The easiest way to install MagicGuard is using the provided installation scripts:
+
+**Linux/macOS:**
+```bash
+# Clone the repository
+git clone https://github.com/anthonynoelw/magicguard.git
+cd magicguard
+
+# Make the script executable
+chmod +x install.sh
+
+# Run the installation script
+./install.sh
+
+# For development installation with all dev tools
+./install.sh --dev
+
+# With Docker verification
+./install.sh --docker
+```
+
+**Windows PowerShell:**
+```powershell
+# Clone the repository
+git clone https://github.com/anthonynoelw/magicguard.git
+cd magicguard
+
+# Run the installation script
+.\install.ps1
+
+# For development installation with all dev tools
+.\install.ps1 -Dev
+
+# With Docker verification
+.\install.ps1 -Docker
+```
+
+The installation scripts will:
+- ✓ Verify Python 3.11+ is installed
+- ✓ Create and activate a virtual environment
+- ✓ Install MagicGuard and all dependencies
+- ✓ Initialize the signature database
+- ✓ Verify the installation
+- ✓ Optionally install development tools
+- ✓ Optionally verify Docker setup
+
+### Manual Installation
+
+If you prefer to install manually:
+
 ```bash
 # Clone the repository
 git clone https://github.com/anthonynoelw/magicguard.git
